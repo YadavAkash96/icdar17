@@ -18,7 +18,10 @@ class Retrieval:
 
     def eval(self, features, labels, use_precomputed_distances=False):
         distances = self.calc_distances(features, labels, use_precomputed_distances=use_precomputed_distances)
-
+        #print("eval distances: {} ".format(distances))
+        #print("distance shape: {}".format(len(distances)))
+        #print(f'len of labels :{len(labels)}')
+        #print(f'value of labels: {labels}')
         logger_result, csv_result = self.calc_map_from_distances(labels, distances)
         return logger_result, csv_result
 
@@ -86,7 +89,7 @@ class Retrieval:
 
     @staticmethod
     def calc_map_from_distances(labels, distances):
-        eval_range = range(1, 10)
+        eval_range = range(1, 10) #my changes it was 10
         hard_eval, soft_eval, percentage_eval = [], [], []
 
         top1_correct_count = 0

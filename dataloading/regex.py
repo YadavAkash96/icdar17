@@ -4,6 +4,7 @@ from PIL import Image
 import os
 import os.path
 from tqdm import tqdm
+import h5py
 import numpy as np
 import re
 from PIL import ImageOps
@@ -25,25 +26,48 @@ def make_dataset(cur_dir, rxs, extensions):
     assert rxs is not None, 'no regular expression is set'
     cur_dir = os.path.expanduser(cur_dir)
 
-    filegen = glob.glob(cur_dir + '/**/*.*', recursive=True)
+    #filegen = glob.glob(cur_dir + '/**/*.*', recursive=True)
     
-    files = [f for f in tqdm(filegen, 'Parsing Filenames')
-             if os.path.isfile(f) and is_image_file(f, extensions)]
-    files.sort()
-
-    if len(files) == 0:
-        raise (RuntimeError("Found 0 images in subfolders of: {}\n"
-                            "Supported image extensions are: {}".format(cur_dir, ",".join(extensions))))
+    #files = [f for f in tqdm(filegen, 'Parsing Filenames')
+    #         if os.path.isfile(f) and is_image_file(f, extensions)]
+    #files.sort()
+    
+    all_labels = []
+    all_images = []
+    
+    #print(f'{cur_dir}')
+    if 'icdar17' in cur_dir:
+        h5_files = glob.glob(cur_dir + '/cluster_*.h5')
+    else:
+        logging.error("Something went wrong, Check file directory files name are not correct...")
+        
+    for filen in tqdm(h5_files, total=len(h5_files), desc= " Labels and Images extraction"):
+        h5f = h5py.File(filen,'r')
+        all_images.extend([np.array(v) for v in h5f.values()])
+        all_labels.extend([k for k in h5f.keys()])
+        h5f.close()
+    
+    print(f'extracted images and labels : {len(all_images)},{len(all_labels)}')
+        
+  
+    if len(all_images) == 0:
+        raise (RuntimeError("Found 0 images in subfolders of: {}\n"))
 
     # this below should probably be moved to a regex label class or something
     # could be changed to imgage dataset and label decorator
     labels = {}
     label_to_int = {}
     int_to_label = {}
-    for path in tqdm(files, 'Labels'):
+    
+    #print(files)
+    for path in tqdm(all_labels, 'Labels'):
         f = os.path.basename(path)
+        #print(f"path=====>{path}\nf_path===>{f}")
+        #print(rxs.items())
         for name, regex in rxs.items():
+            #print(f"name:{name},regex:{regex}")
             r = '_'.join(re.search(regex, f).groups())
+            #print(r)
             labels[name] = labels.get(name, [])
             labels[name].append(r)
 
@@ -56,7 +80,7 @@ def make_dataset(cur_dir, rxs, extensions):
     for name, lst in labels.items():
         labels[name] = [label_to_int[name][l] for l in lst]
 
-    return files, labels, label_to_int, int_to_label
+    return all_images, labels, label_to_int, int_to_label
 
 
 def pil_loader(path):
@@ -67,7 +91,9 @@ def pil_loader(path):
                 return ImageOps.grayscale(img.convert('RGB'))
 
             return img.convert(mode='L')
-
+        
+def array_to_img_loader(img_array):
+    return Image.fromarray(img_array)
 
 def svg_string_loader(path):
     with open(path, 'r') as f:
@@ -78,6 +104,8 @@ def get_loader(loader_name):
 
     if loader_name == 'svg_string':
         return svg_string_loader
+    elif loader_name == 'array_to_img':
+        return array_to_img_loader
     else:
         return pil_loader
 
@@ -243,8 +271,10 @@ class ImageFolder(WrapableDataset):
      Attributes:
         imgs (list): List of (image path, class_index) tuples
     """
-
-    def __init__(self, path, loader='PIL', regex=None, mean=None, extensions=IMG_EXTENSIONS, data_augmentation=False):
+    #path = '/home/woody/iwi5/iwi5232h/project/resources\\icdar17'
+    #'regex' : {'cluster' : r'(\d+)', 'writer': r'\d+_(\d+)', 'page' : r'\d+_\d+-IMG_MAX_(\d+)'}}
+    # change loader type to array_to_img loader, previous #loader='PIL'
+    def __init__(self, path, loader='array_to_img', regex=None, mean=None, extensions=IMG_EXTENSIONS, data_augmentation=False):
         logging.info('Loading dataset from {}'.format(path))
         # classes, class_to_idx = find_classes(root, regex)
         # imgs,classes, regex_to_class, indices = make_dataset(root, regex, id_regex)

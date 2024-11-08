@@ -2,13 +2,14 @@ import cv2
 import numpy as np
 from joblib import Parallel, delayed
 import multiprocessing
+import h5py
 import os
 import glob
 import logging
 import sklearn.preprocessing
 from sklearn.decomposition import PCA
 from tqdm import tqdm
-
+import pandas as pd
 
 IMG_EXTENSIONS = [
     '.jpg', '.JPG', '.jpeg', '.JPEG',
@@ -80,7 +81,6 @@ def calc_features(input_img, arguments):
             uniq_kp.append(point)
 
     _, desc = sift.compute(img_gray, new_kp)
-
     desc = sklearn.preprocessing.normalize(desc, norm='l1')
     desc = np.sign(desc) * np.sqrt(np.abs(desc))
     desc = sklearn.preprocessing.normalize(desc, norm='l2')
@@ -122,18 +122,25 @@ def extract_patches(filename, tup, args):
         new_size_mask = (int(width), int(height))
         img = cv2.resize(img, new_size_mask, interpolation=cv2.INTER_CUBIC)
 
-
     count = 0
     for p in points:
         roi = get_image_patch(img, p[0], p[1], args)
         if roi is None:
             continue
-        
-        out_path = os.path.join(args.out_dir[0], os.path.splitext(os.path.basename(filename))[0],
-                                os.path.splitext(os.path.basename(filename))[0] + '_' + str(count) + '.png')
 
+        # structure
+        # - filename
+        #       -- patch image 0 : 32x32x1
+        #       -- patch image 1 : 32x32x1
+        
+        h5_file_path = os.path.join(args.out_dir[0], f'{os.path.splitext(os.path.basename(filename))[0]}.h5')
+        h5f = h5py.File(h5_file_path,'a')
+        patch_filename = f'{os.path.splitext(os.path.basename(filename))[0]}_{count}'
+        
+        h5f.create_dataset(patch_filename, data=roi, compression="gzip")
+        
         count = count + 1
-        cv2.imwrite(out_path, roi)
+        
 
 
 if __name__ == "__main__":
@@ -183,7 +190,8 @@ if __name__ == "__main__":
     num_cores = 10
     path_to_centers = ''
 
-    files = [f for f in glob.glob(args.in_dir[0] + '/**/*.*', recursive=True) if os.path.isfile(f) and is_image_file(f)]
+    # my changes below os.path.basename(f) original was 'f'
+    files = [ f for f in glob.glob(args.in_dir[0] + '/**/*.*', recursive=True) if os.path.isfile(f) and is_image_file(f)]
 
     assert len(files) > 0, 'no images found'
     logging.info('Found {} images'.format(len(files)))
@@ -205,54 +213,9 @@ if __name__ == "__main__":
             desc_list.append(desc)
             fn_list.append(f)
 
-    # filtered = []
-    # if args.cluster:
-    #     descs = np.array(desc_list)
-    #     samples = min(descs.shape[0], 500000)
-
-    #     pca = PCA(32, whiten=True)
-    #     pca.fit(descs[np.linspace(0, descs.shape[0]-1, samples).astype('int')])
-
-    #     center_path = '/data/mpeer/resources/icdar2017_train_sift_patches_binarized/centers.pkl' #args.cluster
-    #     kmeans = pickle.load(open(center_path,'rb'))
-    #     patches_files = {}
-    #     feature_count = 0
-    #     batch_size = 50000
-    #     for r, f in zip(results, files):
-    #         kp, desc = zip(*r)
-                
-    #         desc = np.array(desc)
-    #         desc = pca.transform(desc)
-    #         dist = kmeans.transform(desc)
-    #         prediction = kmeans.predict(desc)
-
-    #         dist = np.sort(dist)
-    #         ratio = dist[:, 0] / dist[:, 1]
-    #         idx = (ratio > 0.9).nonzero()[0]
-    #         print(f'remove {idx.shape} keypoints')
-    #         kp = np.delete(kp, idx).tolist()
-    #         desc =  np.delete(desc, idx).tolist()
-
-    #         filtered.append([(k,d) for k,d in zip(kp, desc)])
-    #             # for p, f, c, r in zip(batch(kp_list), batch(fn_list), prediction, ratio):
-    #             #     if r <= 0.9:
-    #             #         feature_count += 1
-    #             #         if f in patches_files:
-    #             #             patches_files[f].append((p, c))
-    #             #         else:
-    #             #             patches_files[f] = [(p, c)]
-
-    # descs = None
-    # results = filtered
-    logging.info('creating labels directories in output directory')
-    for fn in set(fn_list):
-        f_name = os.path.splitext(os.path.basename(fn))[0]
-        if not os.path.exists(os.path.join(args.out_dir[0], str(f_name))):
-            os.mkdir(os.path.join(args.out_dir[0], str(f_name)))
-
-    # logging.info('copying %i (all patches per page) image patches to %s ' % (kp_list, args.out_dir[0]))
-    results = Parallel(n_jobs=num_cores, verbose=9)(
-        delayed(extract_patches)(filename, tup, args) for filename, tup in zip(files, results))
+    for filename, tup in tqdm(zip(files, results), total=len(files), desc="Scriptnet Images Patch generation"):
+        extract_patches(filename, tup, args)
+        
 
     config_out_path = os.path.join(args.out_dir[0], 'db-creation-parameters.json')
     logging.info('writing config parameters to {}')
@@ -261,5 +224,5 @@ if __name__ == "__main__":
 
         json.dump(vars(args), f)
 
-    out_files = [f for f in glob.glob(args.out_dir[0] + '/**/*.*', recursive=True) if os.path.isfile(f) and is_image_file(f)]
-    logging.info(f'done - extracted {len(out_files)} patches')
+    #out_files = [f for f in glob.glob(args.out_dir[0] + '/**/*.*', recursive=True) if os.path.isfile(f) and is_image_file(f)]
+    #logging.info(f'done - extracted {len(out_files)} patches')

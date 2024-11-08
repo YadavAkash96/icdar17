@@ -56,6 +56,8 @@ class TripletLoss(nn.Module):
 
 if __name__ == '__main__':
     labels = torch.concat([torch.arange(0,10) for i in range(10)]).cuda()
+    
+    #x = torch.tensor([[i * 0.1 for i in range(128)] for _ in range(100)]).cuda()
     x = torch.rand(100,128).cuda()
     loss = TripletLoss()
     print(loss(x, labels, x, labels))

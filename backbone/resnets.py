@@ -27,7 +27,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 
-__all__ = ['ResNet', 'resnet20', 'resnet32', 'resnet44', 'resnet56', 'resnet110', 'resnet1202']
+__all__ = ['ResNet', 'resnet20', 'resnet32', 'resnet56', 'resnet110', 'resnet1202']
 
 def _weights_init(m):
     classname = m.__class__.__name__

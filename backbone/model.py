@@ -4,13 +4,22 @@ from torch import nn
 import torch.nn.functional as F
 
 from backbone.resnets import resnet56
+from backbone.densenet import densenet121
+
 
 class Model(torch.nn.Module):
 
-    def __init__(self, backbone=resnet56(), num_clusters=100, dim=64, random=False):
+    #=>>>>>>>>>>>>>>>>>my changes backbone=resnet56(),densenet121()
+    def __init__(self, backbone, num_clusters=100, dim=64, random=False):
         super(Model, self).__init__()
         self.backbone = backbone
-        self.backbone.fc = torch.nn.Identity()
+        # my changes start
+        self.backbone.classifier = torch.nn.Identity()
+        #self.conv_reduce1 = nn.Conv2d(1024, 512, kernel_size=1)
+        #self.conv_reduce2 = nn.Conv2d(389, 64, kernel_size=1)
+        # my changes end
+        #self.backbone.fc = torch.nn.Identity()
+        
         self.nv = NetVLAD(num_clusters=num_clusters, dim=dim, random=random)
 
     def forward(self, x):
@@ -47,6 +56,7 @@ class NetVLAD(nn.Module):
 
     def _init_params(self):
         if not self.random:
+            print("alpha-init not skipped")
             self.conv.weight = nn.Parameter(
                 (2.0 * self.alpha * self.centroids).unsqueeze(-1).unsqueeze(-1)
             )

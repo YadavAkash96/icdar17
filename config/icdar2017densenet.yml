@@ -19,14 +19,12 @@ data_augmentation : morph
 # base lr 5e-4 to 1e-5
 optimizer_options: 
   optimizer: sgd 
-  base_lr: 0.001  # this should be less 0.001
-  wd: 0
-  mom: 0.9
-  grad_clip: 5
-  final_lr: 1.0e-05
-  warmup_epochs : 3 # Increasing warmup epochs for a smoother start
+  base_lr: 0.2  # this should be less 0.001
+  wd: 0.0001
+  final_lr: 0.001
+  warmup_epochs : 2 # Increasing warmup epochs for a smoother start
 
-super_fancy_new_name: test_repository_densenet_arcfacesubcenter
+super_fancy_new_name: test_repository_densenet
 
 model :  
     name : densenet121
@@ -34,13 +32,12 @@ model :
     encoding : netrvlad
 
 train_options: 
-  epochs: 40
-  batch_size: 512   
-  scheduler: cosine                            
+  epochs: 50 
+  batch_size: 512                               
   callback : early_stopping
-  callback_patience : 5
+  callback_patience : 8
 
-  loss : margin  
+  loss : triplet  
   margin : 0.1
   sampler_m : 16
   length_before_new_iter: 512000

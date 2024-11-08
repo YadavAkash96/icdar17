@@ -1,18 +1,18 @@
 
 icdar2017-train: 
-    in_dir : /data/mpeer/icdar2017-train_binarized
-    out_dir : /data/mpeer/resources/icdar2017_train_sift_patches_binarized_1000
+    in_dir : /home/vault/iwi5/iwi5232h/resources/icdar17-historicalwi-training-binarized/
+    out_dir : /home/vault/iwi5/iwi5232h/resources/icdar17_train
     win_size : 32
     patches_per_page : -1       
-    num_of_cluster : 1000
+    num_of_cluster : 5000
     sigma : 2.5
     black_pixel_thresh : -1
     white_pixel_thresh : 0.95
     centered : True
     
 icdar2017-test:
-    in_dir : /data/mpeer/icdar2017-test_binarized
-    out_dir : /data/mpeer/resources/icdar2017_test_sift_patches_binarized_2kpp
+    in_dir : /home/vault/iwi5/iwi5232h/resources/ScriptNet_HistoricalWI2017_binarized
+    out_dir :/home/vault/iwi5/iwi5232h/resources/scriptnet
     win_size : 32
     patches_per_page : 2000       
     sigma : 2.5

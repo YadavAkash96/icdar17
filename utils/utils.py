@@ -16,7 +16,7 @@ import random
 import pickle
 import socket
 import git
-import matplotlib as mpl
+#import matplotlib as mpl
 import wandb
 
 from torchvision import datasets, transforms
@@ -24,7 +24,7 @@ from PIL import Image
 from PIL import ImageFile
 from PIL import ImageOps, Image, ImageDraw, ImageFont
 
-mpl.use('Agg')
+#mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 
@@ -119,8 +119,7 @@ class AbstractLogger(object):
         log_path = log_path + '-%d-%02d-%02d-%02d-%02d' % (now.year, now.month, now.day, now.hour, now.minute)
         if os.path.isdir(log_path):
             log_path += '-%02d' % now.second
-
-        os.mkdir(os.path.expanduser(log_path))
+        os.makedirs(log_path, exist_ok=True)
 
         file_handler = logging.FileHandler(os.path.join(log_path, 'log.txt'), mode='w')
         file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s '))
