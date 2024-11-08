@@ -25,9 +25,9 @@ This project presents an unsupervised approach for writer retrieval using a Conv
 ## Setup
 ```
 pip install -r requirements.txt
-
-Note: Not all packages are required, check the latest availability of packages.
 ```
+**Note: Not all packages are required, check the latest availability of packages.**
+
 ## Data Generation
 
 ```
