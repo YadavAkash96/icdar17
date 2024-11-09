@@ -22,6 +22,34 @@ This project presents an unsupervised approach for writer retrieval using a Conv
 - Implementation and comparison of Additive Margin Softmax Loss, ArcFace, and Triplet Loss
 - Additional experiments with data augmentation (morphological operations), variations in feature extraction methods, and different clustering techniques such as DBSCAN and HDBSCAN
 
+## Setup
+```
+pip install -r requirements.txt
+```
+**Note: Not all packages are required, check the latest availability of packages.**
+
+## Data Generation
+
+```
+python helpers/extract_patches.py \
+    --in_dir /home/vault/iwi5/iwi5232h/resources/icdar2017-train_binarized/ \
+    --out_dir /home/vault/iwi5/iwi5232h/resources/icdar17_train \
+    --num_of_clusters 5000 \
+    --patches_per_page -1 \
+    --sigma 2.5 \
+    --black_pixel_thresh -1 \
+    --white_pixel_thresh 0.95 \
+    > /home/vault/iwi5/iwi5232h/resources/logs_extract_patches_log.txt 2>&1
+
+python helpers/extract_patches_only.py --params
+```
+**Also look into extract_patches_job.sbatch and extract_patches_only_job.sbatch for parameters. This script  will generate h5 files which will store patches array and labels.**
+
+## Train and evaluate
+
+```
+python main.py > /home/vault/iwi5/iwi5232h/resources/train_densenet_tr1.txt 2>&1
+```
 ## References
 
 1. Peer et al., "Towards Writer Retrieval with SIFT-based Features," 2023.
