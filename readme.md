@@ -43,7 +43,7 @@ python helpers/extract_patches.py \
 
 python helpers/extract_patches_only.py --params
 ```
-**Also look into extract_patches_job.sbatch and extract_patches_only_job.sbatch for parameters. This script  will generate h5 files which will store patches array and labels.**
+**This script is assuming that your data also has white text and black background, Also look into extract_patches_job.sbatch and extract_patches_only_job.sbatch for parameters. This script  will generate h5 files which will store patches array and labels.**
 
 ## Train and evaluate
 
