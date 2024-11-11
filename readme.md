@@ -11,7 +11,7 @@ This project presents an unsupervised approach for writer retrieval using a Conv
 
 ## Figure
 
-![image](https://github.com/user-attachments/assets/70e30682-8703-497d-8acd-ffeef4578612) **Fig: Network Architecture**
+![Fig: Network Architecture](./NetworkArchitecture_.png) **Fig: Network Architecture**
 
 
 
